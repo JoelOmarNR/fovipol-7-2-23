@@ -1,0 +1,51 @@
+version: "3.9"
+services:
+  postgres14:
+    container_name: postgres14
+    image: postgres:14-alpine
+    command: postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: sasa
+    volumes:
+      - data-postgres:/var/lib/postgresql/data
+    restart: always
+    networks:
+      - reddocker
+
+  keycloak:
+    container_name: keycloak
+    image: fovipolkeycloak
+    command: start --optimized
+    ports:
+      - "80:8080"
+      - "8443:8443"
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: Fovipol2023
+      KC_HTTPS_CERTIFICATE_FILE: /etc/x509/https/fovipol.pem
+      KC_HTTPS_CERTIFICATE_KEY_FILE: /etc/x509/https/llavefovipol.pem
+      KC_HTTPS_PROTOCOLS: TLSv1.3
+    depends_on:
+      - postgres14
+    volumes:
+      - ./cert/fovipol.pem:/etc/x509/https/fovipol.pem
+      - ./cert/llavefovipol.pem:/etc/x509/https/llavefovipol.pem
+    restart: always
+    networks:
+      - reddocker
+
+volumes:
+  data-postgres:
+    name: data-postgres
+  theme-keycloak:
+    name: theme-keycloak
+  keys-keycloak:
+    name: keys-keycloak
+
+networks:
+  reddocker:
+    name: reddocker
